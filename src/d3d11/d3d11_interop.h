@@ -8,7 +8,7 @@ namespace dxvk {
 
   class D3D11Device;
   
-  class D3D11VkInterop : public ComObject<IDXGIVkInteropDevice1> {
+  class D3D11VkInterop : public ComObject<IDXGIVkInteropDevice2> {
     
   public:
     
@@ -56,6 +56,8 @@ namespace dxvk {
             const D3D11_TEXTURE2D_DESC1* pDesc,
             VkImage                      vkImage,
             ID3D11Texture2D**            ppTexture2D);
+
+    void STDMETHODCALLTYPE WaitForGpuIdle();
     
   private:
     

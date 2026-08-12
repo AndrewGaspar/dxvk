@@ -160,4 +160,11 @@ namespace dxvk {
       return E_INVALIDARG;
     }
   }
+
+  void STDMETHODCALLTYPE D3D11VkInterop::WaitForGpuIdle() {
+    auto immediateContext = m_device->GetContext();
+    immediateContext->Flush();
+    immediateContext->SynchronizeCsThread(DxvkCsThread::SynchronizeAll);
+    m_device->GetDXVKDevice()->waitForIdle();
+  }
 }
