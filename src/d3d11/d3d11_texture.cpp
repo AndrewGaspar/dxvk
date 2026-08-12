@@ -44,6 +44,7 @@ namespace dxvk {
     imageInfo.layout          = VK_IMAGE_LAYOUT_GENERAL;
     imageInfo.initialLayout   = VK_IMAGE_LAYOUT_UNDEFINED;
     imageInfo.shared          = vkImage != VK_NULL_HANDLE;
+    VkImageLayout trackedLayout = imageInfo.initialLayout;
 
     // Normalise hSharedhandle to INVALID_HANDLE_VALUE to allow passing in nullptr
     if (hSharedHandle == nullptr)
@@ -221,6 +222,15 @@ namespace dxvk {
     if (imageInfo.tiling == VK_IMAGE_TILING_OPTIMAL && !isMultiPlane && imageInfo.sharing.mode == DxvkSharedHandleMode::None)
       imageInfo.layout = OptimizeLayout(imageInfo.usage);
 
+    // Images borrowed through CreateTexture2DFromVkImage are acquired and
+    // released by the external owner in an attachment layout. Keep DXVK's
+    // tracker and command-list restore layout on that boundary layout as well.
+    // Shader-resource use may still transition the image temporarily.
+    if (vkImage != VK_NULL_HANDLE && (m_desc.BindFlags & D3D11_BIND_DEPTH_STENCIL)) {
+      imageInfo.layout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
+      trackedLayout = imageInfo.layout;
+    }
+
     // Check if we can actually create the image
     if (!CheckImageSupport(&imageInfo, imageInfo.tiling)) {
       throw DxvkError(str::format(
@@ -242,7 +252,7 @@ namespace dxvk {
     if (!vkImage)
       m_image = m_device->GetDXVKDevice()->createImage(imageInfo, memoryProperties);
     else
-      m_image = m_device->GetDXVKDevice()->importImage(imageInfo, vkImage, memoryProperties);
+      m_image = m_device->GetDXVKDevice()->importImage(imageInfo, vkImage, trackedLayout, memoryProperties);
 
     if (m_mapMode == D3D11_COMMON_TEXTURE_MAP_MODE_DIRECT)
       m_mapPtr = m_image->mapPtr(0);

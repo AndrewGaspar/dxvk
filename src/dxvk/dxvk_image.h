@@ -442,6 +442,7 @@ namespace dxvk {
             DxvkDevice*           device,
       const DxvkImageCreateInfo&  createInfo,
             VkImage               imageHandle,
+            VkImageLayout         trackedLayout,
             DxvkMemoryAllocator&  allocator,
             VkMemoryPropertyFlags memFlags);
     

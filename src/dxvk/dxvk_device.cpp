@@ -547,7 +547,16 @@ namespace dxvk {
     const DxvkImageCreateInfo&  createInfo,
           VkImage               image,
           VkMemoryPropertyFlags memoryType) {
-    return new DxvkImage(this, createInfo, image,
+    return importImage(createInfo, image, createInfo.initialLayout, memoryType);
+  }
+
+
+  Rc<DxvkImage> DxvkDevice::importImage(
+    const DxvkImageCreateInfo&  createInfo,
+          VkImage               image,
+          VkImageLayout         trackedLayout,
+          VkMemoryPropertyFlags memoryType) {
+    return new DxvkImage(this, createInfo, image, trackedLayout,
       m_objects.memoryManager(), memoryType);
   }
 

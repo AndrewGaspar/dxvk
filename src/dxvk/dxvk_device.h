@@ -539,6 +539,21 @@ namespace dxvk {
             VkMemoryPropertyFlags memoryType);
 
     /**
+     * \brief Imports an image with an externally supplied tracker layout
+     *
+     * \param [in] createInfo Image create info
+     * \param [in] image Vulkan image to wrap
+     * \param [in] trackedLayout Current externally managed image layout
+     * \param [in] memoryType Memory type flags
+     * \returns The image object
+     */
+    Rc<DxvkImage> importImage(
+      const DxvkImageCreateInfo&  createInfo,
+            VkImage               image,
+            VkImageLayout         trackedLayout,
+            VkMemoryPropertyFlags memoryType);
+
+    /**
      * \brief Retrieves stat counters
      * 
      * Can be used by the HUD to display some

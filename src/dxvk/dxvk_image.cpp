@@ -168,6 +168,7 @@ namespace dxvk {
           DxvkDevice*           device,
     const DxvkImageCreateInfo&  createInfo,
           VkImage               imageHandle,
+          VkImageLayout         trackedLayout,
           DxvkMemoryAllocator&  allocator,
           VkMemoryPropertyFlags memFlags)
   : DxvkPagedResource(allocator),
@@ -176,7 +177,7 @@ namespace dxvk {
     m_shaderStages  (util::shaderStages(createInfo.stages)),
     m_info          (createInfo),
     m_stableAddress (true),
-    m_globalLayout  (createInfo.initialLayout) {
+    m_globalLayout  (trackedLayout) {
     m_allocator->registerResource(this);
 
     copyFormatList(createInfo.viewFormatCount, createInfo.viewFormats);
