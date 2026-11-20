@@ -1308,12 +1308,34 @@ namespace dxvk {
   VkExtent2D Presenter::pickImageExtent(
     const VkSurfaceCapabilitiesKHR& caps,
           VkExtent2D                desired) {
-    if (caps.currentExtent.width != std::numeric_limits<uint32_t>::max())
-      return caps.currentExtent;
+    if (caps.currentExtent.width != std::numeric_limits<uint32_t>::max()) {
+      // A Win32 surface pins min/max/currentExtent to the client rect, so
+      // the swap chain normally follows the window and the present blit
+      // scales the back buffer into it. Wine can opt in to accepting a
+      // swap chain larger than the window (WINE_VULKAN_ALLOW_LARGER_SWAPCHAIN=1,
+      // Wayland driver), which the compositor then scales into the window.
+      // It reports maxImageExtent > currentExtent in that case; use the
+      // back buffer size if it covers the surface, so that e.g. a 2x wide
+      // side-by-side image reaches the compositor at full resolution.
+      bool acceptsLarger = caps.maxImageExtent.width  > caps.currentExtent.width
+                        || caps.maxImageExtent.height > caps.currentExtent.height;
+
+      if (!acceptsLarger
+       || desired.width  < caps.currentExtent.width
+       || desired.height < caps.currentExtent.height)
+        return caps.currentExtent;
+    }
 
     VkExtent2D actual;
     actual.width  = clamp(desired.width,  caps.minImageExtent.width,  caps.maxImageExtent.width);
     actual.height = clamp(desired.height, caps.minImageExtent.height, caps.maxImageExtent.height);
+
+    if (caps.currentExtent.width != std::numeric_limits<uint32_t>::max() && actual != caps.currentExtent) {
+      Logger::info(str::format("Presenter: Surface accepts larger images, using buffer size ",
+        actual.width, "x", actual.height, " instead of surface size ",
+        caps.currentExtent.width, "x", caps.currentExtent.height));
+    }
+
     return actual;
   }
 
